@@ -5,7 +5,7 @@ exports.handler = async function (event, context) {
   const start = new Date(end - 3 * 60 * 60 * 1000);
   const fmt = (d) => d.toISOString().slice(0, 19);
 
-  const usgsUrl = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02393500&parameterCd=00010&startDT=${fmt(start)}&endDT=${fmt(end)}`;
+  const usgsUrl = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02394000&parameterCd=00010&startDT=${fmt(start)}&endDT=${fmt(end)}`;
 
   try {
     const data = await new Promise((resolve, reject) => {

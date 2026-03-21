@@ -278,11 +278,11 @@ export default function App() {
               {timeStr ?? "—"}
             </div>
             <a
-              href="https://waterdata.usgs.gov/monitoring-location/USGS-02393500/"
+              href="https://waterdata.usgs.gov/monitoring-location/USGS-02394000/"
               target="_blank"
               rel="noopener"
             >
-              USGS · Station 02393500
+              USGS · Station 02394000
             </a>
           </div>
 
