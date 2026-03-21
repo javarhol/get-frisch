@@ -1,23 +1,10 @@
-const https = require("https");
-
-exports.handler = async function (event, context) {
-  const end = new Date();
-  const start = new Date(end - 3 * 60 * 60 * 1000);
-  const fmt = (d) => d.toISOString().slice(0, 19);
-
-  const usgsUrl = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02394000&parameterCd=00010&startDT=${fmt(start)}&endDT=${fmt(end)}`;
+export const handler = async function (event, context) {
+  const usgsUrl = "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02394000&parameterCd=00010&period=PT3H";
 
   try {
-    const data = await new Promise((resolve, reject) => {
-      https.get(usgsUrl, (res) => {
-        let body = "";
-        res.on("data", (chunk) => (body += chunk));
-        res.on("end", () => {
-          try { resolve(JSON.parse(body)); }
-          catch (e) { reject(new Error("Failed to parse USGS response")); }
-        });
-      }).on("error", reject);
-    });
+    const res = await fetch(usgsUrl);
+    if (!res.ok) throw new Error(`USGS API returned ${res.status}`);
+    const data = await res.json();
 
     const series = data?.value?.timeSeries ?? [];
     const ts = series.find(
