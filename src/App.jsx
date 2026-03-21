@@ -27,13 +27,14 @@ export default function App() {
   useEffect(() => {
     async function fetchTemp() {
       try {
-        // Calls our own Netlify function — no CORS issues
-        const res = await fetch("/api/temp");
+        // Call the Netlify function directly — no CORS, no redirect needed
+        const res = await fetch("/.netlify/functions/temp");
         if (!res.ok) throw new Error(`Server error ${res.status}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setTempC(data.tempC);
         setTempTime(data.dateTime);
+        setError(null);
       } catch (e) {
         setError(e.message);
       } finally {

@@ -1,4 +1,6 @@
-export default async (req, context) => {
+const https = require("https");
+
+exports.handler = async function (event, context) {
   const end = new Date();
   const start = new Date(end - 3 * 60 * 60 * 1000);
   const fmt = (d) => d.toISOString().slice(0, 19);
@@ -6,9 +8,16 @@ export default async (req, context) => {
   const usgsUrl = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02393500&parameterCd=00010&startDT=${fmt(start)}&endDT=${fmt(end)}`;
 
   try {
-    const res = await fetch(usgsUrl);
-    if (!res.ok) throw new Error(`USGS responded with ${res.status}`);
-    const data = await res.json();
+    const data = await new Promise((resolve, reject) => {
+      https.get(usgsUrl, (res) => {
+        let body = "";
+        res.on("data", (chunk) => (body += chunk));
+        res.on("end", () => {
+          try { resolve(JSON.parse(body)); }
+          catch (e) { reject(new Error("Failed to parse USGS response")); }
+        });
+      }).on("error", reject);
+    });
 
     const series = data?.value?.timeSeries ?? [];
     const ts = series.find(
@@ -16,7 +25,7 @@ export default async (req, context) => {
     );
 
     if (!ts) {
-      return Response.json({ error: "No temperature series found" }, { status: 404 });
+      return { statusCode: 404, body: JSON.stringify({ error: "No temperature series found" }) };
     }
 
     const vals = (ts.values?.[0]?.value ?? []).filter(
@@ -24,19 +33,24 @@ export default async (req, context) => {
     );
 
     if (!vals.length) {
-      return Response.json({ error: "No valid readings" }, { status: 404 });
+      return { statusCode: 404, body: JSON.stringify({ error: "No valid readings" }) };
     }
 
     const latest = vals[vals.length - 1];
 
-    return Response.json({
-      tempC: parseFloat(latest.value),
-      dateTime: latest.dateTime,
-      siteName: ts.sourceInfo?.siteName ?? "Allatoona Lake",
-    });
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tempC: parseFloat(latest.value),
+        dateTime: latest.dateTime,
+        siteName: ts.sourceInfo?.siteName ?? "Allatoona Lake",
+      }),
+    };
   } catch (e) {
-    return Response.json({ error: e.message }, { status: 500 });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: e.message }),
+    };
   }
 };
-
-export const config = { path: "/api/temp" };
