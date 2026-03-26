@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import TemperatureGraph from "./TemperatureGraph";
 
 function cToF(c) {
   return (c * 9) / 5 + 32;
@@ -21,6 +22,7 @@ export default function App() {
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
   const [unit, setUnit]         = useState("F");
+  const [history, setHistory]   = useState(null);
 
   useEffect(() => { document.title = "Swim Acworth"; }, []);
 
@@ -44,6 +46,20 @@ export default function App() {
     fetchTemp();
     const iv = setInterval(fetchTemp, 15 * 60 * 1000);
     return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    async function fetchHistory() {
+      try {
+        const res = await fetch("/.netlify/functions/temp-history");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.readings?.length) setHistory(data.readings);
+      } catch {
+        // graph is supplementary — silent fail
+      }
+    }
+    fetchHistory();
   }, []);
 
   const tempF   = tempC !== null ? cToF(tempC) : null;
@@ -257,6 +273,10 @@ export default function App() {
         <div className="page" style={{ background: theme.bg, color: theme.text }}>
           <div className="site-name">Swim Acworth</div>
           <div className="location">Lake Acworth · Georgia</div>
+
+          {history && (
+            <TemperatureGraph readings={history} unit={unit} />
+          )}
 
           <div
             className="temp-row"
