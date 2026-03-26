@@ -6,3 +6,4 @@ node_modules
 
 # Deno
 deno.lock
+dist/
