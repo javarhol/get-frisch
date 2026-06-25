@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'Frisch — Water Temperatures',
-        short_name: 'Frisch',
+        name: 'Get Frisch — Water Temperatures',
+        short_name: 'Get Frisch',
         description: 'Live water temperatures from USGS stations.',
         start_url: '/',
         scope: '/',
