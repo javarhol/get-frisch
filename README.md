@@ -2,7 +2,7 @@
 
 Live water temperatures from USGS monitoring stations, with a color-coded swim-condition readout.
 
-**[frisch.netlify.app](https://frisch.netlify.app)**
+**[getfrisch.netlify.app](https://getfrisch.netlify.app)**
 
 [![Donate via Venmo](https://img.shields.io/badge/Donate-Venmo-blue?style=for-the-badge&logo=venmo&logoColor=white)](https://venmo.com/u/JustinVarholick)
 
