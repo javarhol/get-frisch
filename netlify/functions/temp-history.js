@@ -1,6 +1,13 @@
-export const handler = async function (event, context) {
-  const usgsUrl =
-    "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02394000&parameterCd=00010&period=P3D";
+const DEFAULT_SITE = "02394000";
+
+function resolveSite(event) {
+  const raw = event?.queryStringParameters?.site;
+  return /^\d{8,15}$/.test(raw ?? "") ? raw : DEFAULT_SITE;
+}
+
+export const handler = async function (event) {
+  const site = resolveSite(event);
+  const usgsUrl = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${site}&parameterCd=00010&period=P3D`;
 
   try {
     const res = await fetch(usgsUrl);
@@ -15,7 +22,7 @@ export const handler = async function (event, context) {
     if (!ts) {
       return {
         statusCode: 404,
-        body: JSON.stringify({ error: "No temperature series found" }),
+        body: JSON.stringify({ error: "No temperature series found", site }),
       };
     }
 
@@ -26,7 +33,7 @@ export const handler = async function (event, context) {
     if (!vals.length) {
       return {
         statusCode: 404,
-        body: JSON.stringify({ error: "No valid readings" }),
+        body: JSON.stringify({ error: "No valid readings", site }),
       };
     }
 
@@ -34,7 +41,7 @@ export const handler = async function (event, context) {
     const groups = {};
     for (const v of vals) {
       const d = new Date(v.dateTime);
-      const key = d.toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
+      const key = d.toISOString().slice(0, 13);
       const mins = d.getMinutes();
       if (!groups[key] || mins < groups[key].mins) {
         groups[key] = { mins, value: v };
@@ -54,7 +61,7 @@ export const handler = async function (event, context) {
         "Content-Type": "application/json",
         "Cache-Control": "public, max-age=900",
       },
-      body: JSON.stringify({ readings }),
+      body: JSON.stringify({ readings, site }),
     };
   } catch (e) {
     return {
