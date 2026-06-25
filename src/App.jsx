@@ -29,7 +29,7 @@ export default function App() {
   const [history, setHistory]     = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  useEffect(() => { document.title = "Frisch"; }, []);
+  useEffect(() => { document.title = "Get Frisch"; }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -291,11 +291,11 @@ export default function App() {
         }
       `}</style>
 
-      {loading && <div className="loading">Frisch · Loading…</div>}
+      {loading && <div className="loading">Get Frisch · Loading…</div>}
 
       {!loading && (
         <div className="page" style={{ background: theme.bg, color: theme.text }}>
-          <div className="site-name">Frisch</div>
+          <div className="site-name">Get Frisch</div>
           <button
             type="button"
             className="location"

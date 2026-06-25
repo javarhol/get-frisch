@@ -1,4 +1,4 @@
-# Frisch
+# Get Frisch
 
 Live water temperatures from USGS monitoring stations, with a color-coded swim-condition readout.
 
@@ -8,7 +8,7 @@ Live water temperatures from USGS monitoring stations, with a color-coded swim-c
 
 ---
 
-Frisch pulls live water temperature from USGS monitoring stations and displays it with color-coded themes and swim-condition advice — from "Too cold to swim." to "Great conditions. Get in."
+Get Frisch pulls live water temperature from USGS monitoring stations and displays it with color-coded themes and swim-condition advice — from "Too cold to swim." to "Great conditions. Get in."
 
 Pick any USGS station that reports water temperature; save up to three favorites for one-tap switching.
 
