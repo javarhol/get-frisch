@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import TemperatureGraph from "./TemperatureGraph";
+import LocationPicker from "./LocationPicker";
+import { useFavorites } from "./useFavorites";
 
 function cToF(c) {
   return (c * 9) / 5 + 32;
@@ -17,50 +19,60 @@ function getTempTheme(f) {
 }
 
 export default function App() {
-  const [tempC, setTempC]       = useState(null);
-  const [tempTime, setTempTime] = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
-  const [unit, setUnit]         = useState("F");
-  const [history, setHistory]   = useState(null);
+  const favs = useFavorites();
+  const [tempC, setTempC]         = useState(null);
+  const [tempTime, setTempTime]   = useState(null);
+  const [siteName, setSiteName]   = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
+  const [unit, setUnit]           = useState("F");
+  const [history, setHistory]     = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
-  useEffect(() => { document.title = "Swim Acworth"; }, []);
+  useEffect(() => { document.title = "Frisch"; }, []);
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchTemp() {
       try {
-        // Call the Netlify function directly — no CORS, no redirect needed
-        const res = await fetch("/.netlify/functions/temp");
+        const res = await fetch(`/.netlify/functions/temp?site=${favs.activeId}`);
         if (!res.ok) throw new Error(`Server error ${res.status}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
+        if (cancelled) return;
         setTempC(data.tempC);
         setTempTime(data.dateTime);
+        setSiteName(data.siteName);
         setError(null);
       } catch (e) {
-        setError(e.message);
+        if (!cancelled) setError(e.message);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+    setLoading(true);
     fetchTemp();
     const iv = setInterval(fetchTemp, 15 * 60 * 1000);
-    return () => clearInterval(iv);
-  }, []);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [favs.activeId]);
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchHistory() {
       try {
-        const res = await fetch("/.netlify/functions/temp-history");
+        const res = await fetch(`/.netlify/functions/temp-history?site=${favs.activeId}`);
         if (!res.ok) return;
         const data = await res.json();
-        if (data.readings?.length) setHistory(data.readings);
+        if (!cancelled && data.readings?.length) setHistory(data.readings);
+        else if (!cancelled) setHistory(null);
       } catch {
         // graph is supplementary — silent fail
       }
     }
+    setHistory(null);
     fetchHistory();
-  }, []);
+    return () => { cancelled = true; };
+  }, [favs.activeId]);
 
   const tempF   = tempC !== null ? cToF(tempC) : null;
   const theme   = getTempTheme(tempF);
@@ -74,6 +86,9 @@ export default function App() {
         hour: "numeric", minute: "2-digit", hour12: true,
       })
     : null;
+
+  const displayLocation =
+    favs.activeFavorite?.name || siteName || `USGS Station #${favs.activeId}`;
 
   return (
     <>
@@ -135,7 +150,16 @@ export default function App() {
           opacity: 0;
           animation: slideDown 0.6s cubic-bezier(0.16,1,0.3,1) 0.12s forwards;
           margin-bottom: 8px;
+          background: none;
+          border: none;
+          color: inherit;
+          cursor: pointer;
+          padding: 6px 10px;
+          border-radius: 6px;
+          transition: background 0.2s;
         }
+        .location:hover { background: rgba(255,255,255,0.08); }
+        .location .caret { opacity: 0.5; margin-left: 6px; font-size: 0.8em; }
 
         .temp-row {
           display: flex;
@@ -267,12 +291,19 @@ export default function App() {
         }
       `}</style>
 
-      {loading && <div className="loading">Swim Acworth · Loading…</div>}
+      {loading && <div className="loading">Frisch · Loading…</div>}
 
       {!loading && (
         <div className="page" style={{ background: theme.bg, color: theme.text }}>
-          <div className="site-name">Swim Acworth</div>
-          <div className="location">Lake Acworth · Georgia</div>
+          <div className="site-name">Frisch</div>
+          <button
+            type="button"
+            className="location"
+            onClick={() => setPickerOpen(true)}
+            title="Change location"
+          >
+            {displayLocation}<span className="caret">▾</span>
+          </button>
 
           {history && (
             <TemperatureGraph readings={history} unit={unit} />
@@ -298,17 +329,29 @@ export default function App() {
               {timeStr ?? "—"}
             </div>
             <a
-              href="https://waterdata.usgs.gov/monitoring-location/USGS-02394000/"
+              href={`https://waterdata.usgs.gov/monitoring-location/USGS-${favs.activeId}/`}
               target="_blank"
               rel="noopener"
             >
-              USGS · Station 02394000
+              USGS · Station {favs.activeId}
             </a>
           </div>
 
           <div className="hint" style={{ color: theme.text }}>
             Tap temperature to toggle °F / °C
           </div>
+
+          <LocationPicker
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            textColor={theme.text}
+            favorites={favs.favorites}
+            activeId={favs.activeId}
+            onSelect={favs.setActiveId}
+            onAdd={favs.addFavorite}
+            onRemove={favs.removeFavorite}
+            maxFavorites={favs.maxFavorites}
+          />
         </div>
       )}
     </>

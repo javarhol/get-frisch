@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1a7a4a"/>
+  <!-- Glyph confined to inner 80% safe area for maskable icons -->
+  <g transform="translate(256 256) scale(0.66) translate(-256 -256)">
+    <path d="M256 96 C 256 96, 152 232, 152 320 a 104 104 0 0 0 208 0 C 360 232, 256 96, 256 96 Z" fill="#ffffff"/>
+    <path d="M180 340 q 38 -28 76 0 t 76 0" stroke="#1a7a4a" stroke-width="14" stroke-linecap="round" fill="none" opacity="0.55"/>
+  </g>
+</svg>
